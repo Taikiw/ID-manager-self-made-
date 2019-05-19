@@ -23,6 +23,8 @@ int Swinput(Mgr *,Mgr *,int);
 int Fileoutput(Mgr *);
 int DisplayList(Mgr *,int); //Display Password List
 Mgr *Search(Mgr *,int);
+int Change(Mgr *);
+int Delete(Mgr *);
 int PwG(void); //Password Generator
 int Select(int); //Checking select answer
 
@@ -91,44 +93,47 @@ Mgr *LoadingFile(Mgr *lmgrp){
   Mgr *nextlmgrp;
   Mgr *retmgrp; //ret : return
   FILE *lfp; //Loading file pointer
-  afsearch =
-  if(afsearch == 1){
-    if((lfp=fopen("ID_data.txt","w"))==NULL){
+  afsearch = if(lpf=fopen("ID_data.txt","r") != NULL);
+  fclose(lfp);
+  if(afsearch == 0){
+    if((lfp=fopen("ID_data.txt","w")) == NULL){
       printf("\tCannot Open\n");
       exit(0);
     }
     printf("\tCreated New File ID_data.txt.\n");
+    printf("\tBack to *ID MANAGER START MENU* \n");
     fclose(lfp);
-  }else if(afsearch == 0){
+    IDMGR(void);
+  }else if(afsearch == 1){
     printf("\tData Loading...\n");
-  }
-  if((lfp=fopen("ID_data.txt","r"))==NULL){
-    printf("\tCannot Open\n");
-    exit(0);
-  }
-  for(load=0;load<MAXCNT;load++){
-    lmgrp->nextmgr = (Mgr*)malloc(sizeof(Mgr));
-    nextlmgrp = lmgrp->nextmgr;
-    nextlmgrp->nextmgr = NULL;
-    if(fscanf(lfp,"%[^,],%[^,],%[^,],%[^,],%s\n",lmgrp->Name,lmgrp->AccountID,lmgrp->MailAdress1,lmgrp->MailAdress2,lmgrp->PassWord)==EOF){
-      free(lmgrp->nextmgr);
-      lmgrp->nextmgr = NULL;
-      fclose(lfp);
-      printf("\tFinish Loading\n");
-      return lmgrp;
+    if((lfp=fopen("ID_data.txt","r")) == NULL){
+      printf("\tCannot Open.\n");
+      exit(0);
     }
-    lmgrp = lmgrp->nextmgr;
+    for(load=0;load<MAXCNT;load++){
+      lmgrp->nextmgr = (Mgr*)malloc(sizeof(Mgr));
+      nextlmgrp = lmgrp->nextmgr;
+      nextlmgrp->nextmgr = NULL;
+      if(fscanf(lfp,"%[^,],%[^,],%[^,],%[^,],%s\n",lmgrp->Name,lmgrp->AccountID,lmgrp->MailAdress1,lmgrp->MailAdress2,lmgrp->PassWord)==EOF){
+        free(lmgrp->nextmgr);
+        lmgrp->nextmgr = NULL;
+        fclose(lfp);
+        printf("\tFinish Loading.\n");
+        return lmgrp;
+      }
+      lmgrp = lmgrp->nextmgr;
+    }
+    fclose(lfp);
+    printf("\tFinish Loading.\n");
+    retmgrp = lmgrp->nextmgr;
+    return retmgrp;
   }
-  fclose(lfp);
-  printf("\tFinish Loading\n");
-  retmgrp = lmgrp->nextmgr;
-  return retmgrp;
 }
 
 int Registration(Mgr *hmgrp,Mgr *rmgrp){
   int reg,numor,inp,mode=2; //numor : Number of registrtions
   printf("      \tDATA REGISTER\n");
-  printf("\tPlease enter the number of regstrations >");
+  printf("\tPlease enter the number of regstrations. >");
   reg = Select(mode);
   printf("     \t** ATTENTION **\n");
   printf("\tIf there is nothing to enter , please enter 'no'\n");
@@ -144,22 +149,22 @@ int Registration(Mgr *hmgrp,Mgr *rmgrp){
     rmgrp->nextmgr = (Mgr *)malloc(sizeof(Mgr));
     rmgrp = rmgrp->nextmgr;
   }
-  printf("\tRegistration Complete\n");
+  printf("\tRegistration Complete.\n");
   Fileoutput(hmgrp);
   return 0;
 }
 
 int Administration(Mgr *hmgrp){
-  int selectadmin,mode=3,smode=0;
+  int selectadmin,mode=3;
   printf("      \t*** Setting of ID MANAGER ***\n");
   pritnf("\tContent Change :'0' Content Delete '1' > ");
   selectadmin = Select(mode);
   switch(selectadmin){
     case 0:
-      Change();
+      Change(hmgrp);
       break;
     case 1:
-      Delete();
+      Delete(hmgrp);
       break;
     default:
       return -1;
@@ -205,21 +210,6 @@ int DisplayList(Mgr *dmgrp,int smode){
     case 0:
       while(dmgrp->nextmgr != NULL){
         printf("--------------------------------------------------------------\n");
-        printf("\tSite Name [data %d ] : %s\n",data,dmgrp->Name);
-        if(dmgrp->nextmgr != NULL){
-          next = dmgrp->nextmgr;
-          free(dmgrp);
-          dmgrp = next;
-        }
-        data++;
-      }
-      free(dmgrp);
-      printf("--------------------------------------------------------------\n");
-      printf("\t* Finish *\n");
-      break;
-    case 1:
-      while(dmgrp->nextmgr != NULL){
-        printf("--------------------------------------------------------------\n");
         printf("\tSite Name : %s\n",dmgrp->Name);
         printf("\tAccount ID : %s\n",dmgrp->AccountID);
         printf("\tMail Adress1 : %s\n",dmgrp->MailAdress1);
@@ -235,7 +225,31 @@ int DisplayList(Mgr *dmgrp,int smode){
       printf("--------------------------------------------------------------\n");
       printf("\t* Finish *\n");
       break;
-  }
+    case 1:
+      while(dmgrp->nextmgr != NULL){
+        printf("--------------------------------------------------------------\n");
+        printf("\tSite Name [data %d ] : %s\n",data,dmgrp->Name);
+        if(dmgrp->nextmgr != NULL){
+          next = dmgrp->nextmgr;
+          free(dmgrp);
+          dmgrp = next;
+        }
+        data++;
+      }
+      free(dmgrp);
+      printf("--------------------------------------------------------------\n");
+      printf("\t* Finish *\n");
+      break;
+    case 2:
+      printf("--------------------------------------------------------------\n");
+      printf("\tSite Name : %s\n",dmgrp->Name);
+      printf("\tAccount ID : %s\n",dmgrp->AccountID);
+      printf("\tMail Adress1 : %s\n",dmgrp->MailAdress1);
+      printf("\tMail Adress2 : %s\n",dmgrp->MailAdress2);
+      printf("\tPass Word : %s\n",dmgrp->PassWord);
+      printf("--------------------------------------------------------------\n");
+      break;
+    }
   return 0;
 }
 
@@ -278,18 +292,56 @@ Mgr *Search(Mgr *smgrp,int f){
   for(sc=1;sc<f;sc++){
     nextsmgrp = smgrp->nextmgr;
     smgrp = nextsmgrp;
-    // if(smgrp->nextmgr == NULL){
-    //   printf("error\n");
-    //   return -1;
-    // }
   }
   return smgrp;
+}
+
+int Change(Mgr *hmgrp){
+  int inp,mode=6,smode=1;
+  Mgr *cmgrp;
+  DisplayList(hmgrp,smode);
+  printf("Please enter a number of you want to change. > ");
+  cf = Select(mode);
+  cmgrp = Search(hmgrp,cf);
+  smode=2;
+  DisplayList(cmgrp,smode);
+  printf("\tIf there is nothing to Change , please enter 'no'\n");
+  for(inp=0;inp<5;inp++){
+    Swinput(cmgrp,inp);
+    printf("\n");
+  }
+  Fileoutput(hmgrp);
+  return 0;
+}
+
+int Delete(Mgr *hmgrp){
+  int mode=7,smode=1;
+  Mgr *predelmgrp;
+  Mgr *delmgrp;
+  Mgr *nextdelmgrp;
+  DisplayList(hmgrp,smode);
+  printf("Please enter a number of you want to delete. > ");
+  delf = Select(mode);
+  if(delf-1 == 0){
+    predelmgrp = hmgrp->nextmgr;
+    free(hmgrp);
+    hmgrp = predelmgrp;
+    Fileoutput(hmgrp);
+  }else{
+    premgrp = Search(hmgrp,(delf-1));
+    delgmrp = Search(hmgrp,delf);
+    nextdelmgrp = delmgrp->nextmgr;
+    free(delgrp);
+    premgrp->nextmgr = nextdelmgrp;
+    Filoutput(hmgrp);
+  }
+  return 0;
 }
 
 int PwG(void){
 	int selectyn,numoc,c,r,mode=4; //numoc : Number of characters
 	char *pw;
-	printf("\tIncluding upper case letter ? Yes : y or No : n >");
+	printf("\tIncluding upper case letter ? Yes : '1' or No : '0' >");
   selectyn = Select(mode);
 	printf("\tPlease enter the number of characters >");
   mode = 5;
@@ -333,7 +385,6 @@ int PwG(void){
 
 int Select(int mode){
   int select;
-  char selectyn;
   scanf("%d",&select);
   switch(mode){
     case 0:
@@ -344,13 +395,13 @@ int Select(int mode){
       return select;
     case 1:
       while(select < 0 || 3 < select){
-        printf("\tRe: Registration '0' Change management:'1' Display Password List :'2' END :'3' >");
+        printf("\tRe: Registration :'0' Change management :'1' Display Password List :'2' END :'3' >");
         scanf(" %d",&select);
       }
       return select;
     case 2:
       while(select <= 0){
-        printf("\tRe : Please enter the number of regstrations >");
+        printf("\tRe : Please enter the number of regstrations. >");
         scanf(" %d",&select);
       }
       return select;
@@ -361,19 +412,30 @@ int Select(int mode){
       }
       return select;
     case 4:
-      scanf(" %c",&selectyn);
-      if(selectyn =='y'){
+      if(select == 1){
         return 1;
-      }else if(selectyn =='n'){
+      }else if(select == 0){
         return 0;
-      }else if((selectyn != 'y') && (selectyn != 'n')){
-        printf("\tRe: Yes : 'y' or No : 'n' >");
+      }else if((select != 1) && (select != 0)){
+        printf("\tRe: Yes : '1' or No : '0' >");
         return Select(mode);
       }
       return 1;
     case 5:
-      while(select < 0){
-        printf("\tRe : Please enter the number of characters >");
+      while(select <= 0){
+        printf("\tRe : Please enter the number of characters. >");
+        scanf(" %d",&select);
+      }
+      return select;
+    case 6:
+      while(select <= 0){
+        printf("\tRe : Please enter the number of you want to change. >");
+        scanf(" %d",&select);
+      }
+      return select;
+    case 7:
+      while(select <= 0){
+        printf("\tRe : Please enter the number of you want to delete. >");
         scanf(" %d",&select);
       }
       return select;
