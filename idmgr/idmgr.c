@@ -4,13 +4,13 @@
 #include<time.h>
 #include<Windows.h>
 #define MAXCNT 100
-// #define CK printf("===%d===",__LINE__);
+#define CK printf("===%d===",__LINE__);
 typedef struct Manager{
   char Name[30];
   char AccountID[100];
   char MailAdress1[100];
   char MailAdress2[100];
-  char PassWord[100];
+  char Password[100];
   struct Manager *nextmgr;
 }Mgr;
 
@@ -25,14 +25,16 @@ int DisplayList(Mgr *,int); //Display Password List
 Mgr *Search(Mgr *,int);
 int Change(Mgr *);
 int Delete(Mgr *);
+Mgr *LinkingData(Mgr *,int);
 int PwG(void); //Password Generator
 int Select(int); //Checking select answer
 
 int main(void){
   int selectmain,mode=0;
-  printf("Which one do you want to start ?\n");
-  printf("Please Enter your selected number."); //Please enter a number of to select
-  printf("ID MANAGER :'0' Password Generator :'1' >");
+  printf("\tWhich one do you want to start ?\n");
+  printf("\tPlease Enter your selected number.\n"); //Please enter a number of to select
+  printf("\n");
+  printf("\tID MANAGER :'0' Password Generator :'1' > ");
   selectmain = Select(mode);
   switch(selectmain){
     case 0:
@@ -49,11 +51,11 @@ int main(void){
 
 int IDMGR(void){
   int selectmenu,mode=1,smode=0;
-  selectmenu = Startmenu();
   Mgr *hmgrp;
   Mgr *nextmgrp;
   hmgrp = (Mgr *)malloc(sizeof(Mgr));
   nextmgrp = LoadingFile(hmgrp);
+  selectmenu = Startmenu();
   switch(selectmenu){
     case 0:
       Registration(hmgrp,nextmgrp);
@@ -69,7 +71,7 @@ int IDMGR(void){
       DisplayList(hmgrp,smode);
       break;
     case 3:
-      printf("END.\n");
+      printf("\tEND.\n");
       break;
     default:
       return -1;
@@ -79,12 +81,13 @@ int IDMGR(void){
 
 int Startmenu(void){
   int mode=1;
-  system("cls");
+  // system("cls");
   printf("\n");
   printf("                ----------------------------------------------------\n");
   printf("                          ----- ID MANAGER START MENU ----          \n");
   printf("                ----------------------------------------------------\n");
-  printf("\tRegistration :'0' Change management :'1' Display Password List :'2' END :'3' >");
+  printf("\n");
+  printf("\tRegistration :'0' Change management :'1' Display Password List :'2' END :'3' > ");
   return Select(mode);
 }
 
@@ -105,10 +108,9 @@ Mgr *LoadingFile(Mgr *lmgrp){
         printf("\tCannot Open\n");
         exit(0);
       }
-      printf("\tCreated New File ID_data.txt.\n");
-      printf("\tGo to *ID MANAGER START MENU* \n");
       fclose(lfp);
       IDMGR();
+      exit(0);
     case 1:
       printf("\tData Loading...\n");
       if((lfp=fopen("ID_data.txt","r")) == NULL){
@@ -119,7 +121,7 @@ Mgr *LoadingFile(Mgr *lmgrp){
         lmgrp->nextmgr = (Mgr*)malloc(sizeof(Mgr));
         nextlmgrp = lmgrp->nextmgr;
         nextlmgrp->nextmgr = NULL;
-        if(fscanf(lfp,"%[^,],%[^,],%[^,],%[^,],%s\n",lmgrp->Name,lmgrp->AccountID,lmgrp->MailAdress1,lmgrp->MailAdress2,lmgrp->PassWord)==EOF){
+        if(fscanf(lfp,"%[^,],%[^,],%[^,],%[^,],%s\n",lmgrp->Name,lmgrp->AccountID,lmgrp->MailAdress1,lmgrp->MailAdress2,lmgrp->Password)==EOF){
           free(lmgrp->nextmgr);
           lmgrp->nextmgr = NULL;
           fclose(lfp);
@@ -138,11 +140,14 @@ Mgr *LoadingFile(Mgr *lmgrp){
 
 int Registration(Mgr *hmgrp,Mgr *rmgrp){
   int reg,numor,inp,mode=2; //numor : Number of registrtions
+  printf("\n");
   printf("      \tDATA REGISTER\n");
-  printf("\tPlease enter the number of regstrations. >");
-  reg = Select(mode);
+  printf("\tPlease enter the number of regstrations. > ");
+  numor = Select(mode);
+  printf("\n");
+  printf("-------------------------------------------------------------\n");
   printf("     \t** ATTENTION **\n");
-  printf("\tIf there is nothing to enter , please enter 'no'\n");
+  printf("\tIf there is nothing to enter , please enter 'no'\n\n");
   for(reg=0;reg<numor;reg++){
     for(inp=0;inp<5;inp++){
       Swinput(rmgrp,inp);
@@ -162,6 +167,7 @@ int Registration(Mgr *hmgrp,Mgr *rmgrp){
 
 int Administration(Mgr *hmgrp){
   int selectadmin,mode=3;
+  printf("\n");
   printf("      \t*** Setting of ID MANAGER ***\n");
   printf("\tContent Change :'0' Content Delete '1' > ");
   selectadmin = Select(mode);
@@ -175,7 +181,6 @@ int Administration(Mgr *hmgrp){
     default:
       return -1;
   }
-  Fileoutput(hmgrp);
   return 0;
 }
 
@@ -199,8 +204,8 @@ int Swinput(Mgr *swmgrp,int swinp){
       scanf(" %s",swmgrp->MailAdress2);
       break;
     case 4:
-      printf("\tPass Word >");
-      scanf(" %s",swmgrp->PassWord);
+      printf("\tPassword >");
+      scanf(" %s",swmgrp->Password);
       printf("-------------------------------------------------------------\n");
       break;
     default:
@@ -220,21 +225,7 @@ int DisplayList(Mgr *dmgrp,int smode){
         printf("\tAccount ID : %s\n",dmgrp->AccountID);
         printf("\tMail Adress1 : %s\n",dmgrp->MailAdress1);
         printf("\tMail Adress2 : %s\n",dmgrp->MailAdress2);
-        printf("\tPass Word : %s\n",dmgrp->PassWord);
-        if(dmgrp->nextmgr != NULL){
-          next = dmgrp->nextmgr;
-          free(dmgrp);
-          dmgrp = next;
-        }
-      }
-      free(dmgrp);
-      printf("--------------------------------------------------------------\n");
-      printf("\t* Finish *\n");
-      break;
-    case 1:
-      while(dmgrp->nextmgr != NULL){
-        printf("--------------------------------------------------------------\n");
-        printf("\tSite Name [data %d ] : %s\n",data,dmgrp->Name);
+        printf("\tPassword : %s\n",dmgrp->Password);
         if(dmgrp->nextmgr != NULL){
           next = dmgrp->nextmgr;
           free(dmgrp);
@@ -246,17 +237,30 @@ int DisplayList(Mgr *dmgrp,int smode){
       printf("--------------------------------------------------------------\n");
       printf("\t* Finish *\n");
       break;
+    case 1:
+      while(dmgrp->nextmgr != NULL){
+        printf("--------------------------------------------------------------\n");
+        printf("\tSite Name [data %d ] : %s\n",data,dmgrp->Name);
+        if(dmgrp->nextmgr != NULL){
+          next = dmgrp->nextmgr;
+          dmgrp = next;
+        }
+        data++;
+      }
+      printf("--------------------------------------------------------------\n");
+      printf("\t* Finish *\n");
+      break;
     case 2:
       printf("--------------------------------------------------------------\n");
       printf("\tSite Name : %s\n",dmgrp->Name);
       printf("\tAccount ID : %s\n",dmgrp->AccountID);
       printf("\tMail Adress1 : %s\n",dmgrp->MailAdress1);
       printf("\tMail Adress2 : %s\n",dmgrp->MailAdress2);
-      printf("\tPass Word : %s\n",dmgrp->PassWord);
+      printf("\tPassword : %s\n",dmgrp->Password);
       printf("--------------------------------------------------------------\n");
       break;
     }
-  return 0;
+  return data;
 }
 
 int Fileoutput(Mgr *fomgrp){
@@ -271,11 +275,12 @@ int Fileoutput(Mgr *fomgrp){
     fprintf(cpyfp,"%s,",fomgrp->AccountID);
     fprintf(cpyfp,"%s,",fomgrp->MailAdress1);
     fprintf(cpyfp,"%s,",fomgrp->MailAdress2);
-    fprintf(cpyfp,"%s\n",fomgrp->PassWord);
+    fprintf(cpyfp,"%s\n",fomgrp->Password);
     if(fomgrp->nextmgr != NULL){
       nextfomgrp = fomgrp->nextmgr;
       free(fomgrp);
       fomgrp = nextfomgrp;
+      CK;
     }else{
       free(fomgrp);
       break;
@@ -289,7 +294,7 @@ int Fileoutput(Mgr *fomgrp){
     printf("\tCannot File Delete.\n");
     return -1;
   }
-  return 0;
+  return -1;
 }
 
 Mgr *Search(Mgr *smgrp,int f){
@@ -303,35 +308,48 @@ Mgr *Search(Mgr *smgrp,int f){
 }
 
 int Change(Mgr *hmgrp){
-  int cf,inp,mode=6,smode=1;
+  int cd,cf,inp,mode=6,smode=1;
+  Mgr *precmgrp;
   Mgr *cmgrp;
-  DisplayList(hmgrp,smode);
-  printf("Please enter a number of you want to change. > ");
+  Mgr *nextcmgrp;
+  cd = DisplayList(hmgrp,smode);
+  printf("\tPlease enter a number of you want to change. > ");
   cf = Select(mode);
-  cmgrp = Search(hmgrp,cf);
+  if((cf-1) == 0){
+    cmgrp = hmgrp;
+  }else{
+    precmgrp = Search(hmgrp,(cf-1));
+    cmgrp = Search(hmgrp,cf);
+  }
   smode=2;
   DisplayList(cmgrp,smode);
+  nextcmgrp = cmgrp->nextmgr;
   printf("\tIf there is nothing to Change , please enter 'no'\n");
   for(inp=0;inp<5;inp++){
     Swinput(cmgrp,inp);
     printf("\n");
   }
+  precmgrp->nextmgr = cmgrp;
+  cmgrp->nextmgr = nextcmgrp;
+  hmgrp = LinkingData(hmgrp,cd);
   Fileoutput(hmgrp);
+  printf("\t***Update Complete***\n");
   return 0;
 }
 
 int Delete(Mgr *hmgrp){
-  int delf,mode=7,smode=1;
+  int cd,delf,mode=7,smode=1;
   Mgr *predelmgrp;
   Mgr *delmgrp;
   Mgr *nextdelmgrp;
-  DisplayList(hmgrp,smode);
-  printf("Please enter a number of you want to delete. > ");
+  cd = DisplayList(hmgrp,smode);
+  printf("\tPlease enter a number of you want to delete. > ");
   delf = Select(mode);
   if(delf-1 == 0){
     predelmgrp = hmgrp->nextmgr;
     free(hmgrp);
-    hmgrp = predelmgrp;
+    printf("\t***Delete Complete***\n");
+    hmgrp = LinkingData(hmgrp,(cd-1));
     Fileoutput(hmgrp);
   }else{
     predelmgrp = Search(hmgrp,(delf-1));
@@ -339,14 +357,35 @@ int Delete(Mgr *hmgrp){
     nextdelmgrp = delmgrp->nextmgr;
     free(delmgrp);
     predelmgrp->nextmgr = nextdelmgrp;
+    printf("\t***Delete Complete***\n");
+    hmgrp = LinkingData(hmgrp,(cd-1));
     Fileoutput(hmgrp);
   }
   return 0;
 }
 
+Mgr *LinkingData(Mgr *hmgrp,int cd){
+  int data;
+  Mgr *linkmgrp;
+  Mgr *nextlink;
+  linkmgrp = hmgrp;
+  for(data=1;data<cd;data++){
+    nextlink = linkmgrp->nextmgr;
+    linkmgrp = nextlink;
+  }
+  linkmgrp= NULL;
+  return hmgrp;
+}
+
 int PwG(void){
 	int selectyn,numoc,c,r,mode=4; //numoc : Number of characters
 	char *pw;
+  system("cls");
+  printf("\n");
+  printf("                ----------------------------------------------------\n");
+  printf("                            ----- PASSWORD GENERATOR -----          \n");
+  printf("                ----------------------------------------------------\n");
+  printf("\n");
 	printf("\tIncluding upper case letter ? Yes : '1' or No : '0' >");
   selectyn = Select(mode);
 	printf("\tPlease enter the number of characters >");
