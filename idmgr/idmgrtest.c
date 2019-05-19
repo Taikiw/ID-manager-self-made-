@@ -19,7 +19,7 @@ int Startmenu(void);
 Mgr *LoadingFile(Mgr *);
 int Registration(Mgr *,Mgr *);
 int Administration(Mgr *);
-int Swinput(Mgr *,Mgr *,int);
+int Swinput(Mgr *,int);
 int Fileoutput(Mgr *);
 int DisplayList(Mgr *,int); //Display Password List
 Mgr *Search(Mgr *,int);
@@ -36,10 +36,10 @@ int main(void){
   selectmain = Select(mode);
   switch(selectmain){
     case 0:
-      IDMGR(void);
+      IDMGR();
       break;
     case 1:
-      PwG(void);
+      PwG();
       break;
     default:
       return -1;
@@ -49,14 +49,14 @@ int main(void){
 
 int IDMGR(void){
   int selectmenu,mode=1,smode=0;
-  selectmenu = Startmenu(mode);
+  selectmenu = Startmenu();
   Mgr *hmgrp;
   Mgr *nextmgrp;
   hmgrp = (Mgr *)malloc(sizeof(Mgr));
   nextmgrp = LoadingFile(hmgrp);
   switch(selectmenu){
     case 0:
-      Regstration(hmgrp,nextmgrp);
+      Registration(hmgrp,nextmgrp);
       break;
     case 1:
       Administration(hmgrp);
@@ -93,41 +93,47 @@ Mgr *LoadingFile(Mgr *lmgrp){
   Mgr *nextlmgrp;
   Mgr *retmgrp; //ret : return
   FILE *lfp; //Loading file pointer
-  afsearch = if(lpf=fopen("ID_data.txt","r") != NULL);
-  fclose(lfp);
-  if(afsearch == 0){
-    if((lfp=fopen("ID_data.txt","w")) == NULL){
-      printf("\tCannot Open\n");
-      exit(0);
-    }
-    printf("\tCreated New File ID_data.txt.\n");
-    printf("\tBack to *ID MANAGER START MENU* \n");
-    fclose(lfp);
-    IDMGR(void);
-  }else if(afsearch == 1){
-    printf("\tData Loading...\n");
-    if((lfp=fopen("ID_data.txt","r")) == NULL){
-      printf("\tCannot Open.\n");
-      exit(0);
-    }
-    for(load=0;load<MAXCNT;load++){
-      lmgrp->nextmgr = (Mgr*)malloc(sizeof(Mgr));
-      nextlmgrp = lmgrp->nextmgr;
-      nextlmgrp->nextmgr = NULL;
-      if(fscanf(lfp,"%[^,],%[^,],%[^,],%[^,],%s\n",lmgrp->Name,lmgrp->AccountID,lmgrp->MailAdress1,lmgrp->MailAdress2,lmgrp->PassWord)==EOF){
-        free(lmgrp->nextmgr);
-        lmgrp->nextmgr = NULL;
-        fclose(lfp);
-        printf("\tFinish Loading.\n");
-        return lmgrp;
-      }
-      lmgrp = lmgrp->nextmgr;
-    }
-    fclose(lfp);
-    printf("\tFinish Loading.\n");
-    retmgrp = lmgrp->nextmgr;
-    return retmgrp;
+  if((lfp=fopen("ID_data.txt","r")) != NULL){
+    afsearch = 1;
+  }else{
+    afsearch = 0;
   }
+  fclose(lfp);
+  switch(afsearch){
+    case 0:
+      if((lfp=fopen("ID_data.txt","w")) == NULL){
+        printf("\tCannot Open\n");
+        exit(0);
+      }
+      printf("\tCreated New File ID_data.txt.\n");
+      printf("\tGo to *ID MANAGER START MENU* \n");
+      fclose(lfp);
+      IDMGR();
+    case 1:
+      printf("\tData Loading...\n");
+      if((lfp=fopen("ID_data.txt","r")) == NULL){
+        printf("\tCannot Open.\n");
+        exit(0);
+      }
+      for(load=0;load<MAXCNT;load++){
+        lmgrp->nextmgr = (Mgr*)malloc(sizeof(Mgr));
+        nextlmgrp = lmgrp->nextmgr;
+        nextlmgrp->nextmgr = NULL;
+        if(fscanf(lfp,"%[^,],%[^,],%[^,],%[^,],%s\n",lmgrp->Name,lmgrp->AccountID,lmgrp->MailAdress1,lmgrp->MailAdress2,lmgrp->PassWord)==EOF){
+          free(lmgrp->nextmgr);
+          lmgrp->nextmgr = NULL;
+          fclose(lfp);
+          printf("\tFinish Loading.\n");
+          return lmgrp;
+        }
+        lmgrp = lmgrp->nextmgr;
+      }
+      fclose(lfp);
+      printf("\tFinish Loading.\n");
+      retmgrp = lmgrp->nextmgr;
+      return retmgrp;
+  }
+  return NULL;
 }
 
 int Registration(Mgr *hmgrp,Mgr *rmgrp){
@@ -143,7 +149,7 @@ int Registration(Mgr *hmgrp,Mgr *rmgrp){
       printf("\n");
     }
     if(reg == numor-1){
-      rextmgrp->nextmgr = NULL;
+      rmgrp->nextmgr = NULL;
       break;
     }
     rmgrp->nextmgr = (Mgr *)malloc(sizeof(Mgr));
@@ -157,7 +163,7 @@ int Registration(Mgr *hmgrp,Mgr *rmgrp){
 int Administration(Mgr *hmgrp){
   int selectadmin,mode=3;
   printf("      \t*** Setting of ID MANAGER ***\n");
-  pritnf("\tContent Change :'0' Content Delete '1' > ");
+  printf("\tContent Change :'0' Content Delete '1' > ");
   selectadmin = Select(mode);
   switch(selectadmin){
     case 0:
@@ -281,7 +287,7 @@ int Fileoutput(Mgr *fomgrp){
     printf("\tStorage Complete.\n");
   }else{
     printf("\tCannot File Delete.\n");
-    exit(0);
+    return -1;
   }
   return 0;
 }
@@ -297,7 +303,7 @@ Mgr *Search(Mgr *smgrp,int f){
 }
 
 int Change(Mgr *hmgrp){
-  int inp,mode=6,smode=1;
+  int cf,inp,mode=6,smode=1;
   Mgr *cmgrp;
   DisplayList(hmgrp,smode);
   printf("Please enter a number of you want to change. > ");
@@ -315,7 +321,7 @@ int Change(Mgr *hmgrp){
 }
 
 int Delete(Mgr *hmgrp){
-  int mode=7,smode=1;
+  int delf,mode=7,smode=1;
   Mgr *predelmgrp;
   Mgr *delmgrp;
   Mgr *nextdelmgrp;
@@ -328,12 +334,12 @@ int Delete(Mgr *hmgrp){
     hmgrp = predelmgrp;
     Fileoutput(hmgrp);
   }else{
-    premgrp = Search(hmgrp,(delf-1));
-    delgmrp = Search(hmgrp,delf);
+    predelmgrp = Search(hmgrp,(delf-1));
+    delmgrp = Search(hmgrp,delf);
     nextdelmgrp = delmgrp->nextmgr;
-    free(delgrp);
-    premgrp->nextmgr = nextdelmgrp;
-    Filoutput(hmgrp);
+    free(delmgrp);
+    predelmgrp->nextmgr = nextdelmgrp;
+    Fileoutput(hmgrp);
   }
   return 0;
 }
