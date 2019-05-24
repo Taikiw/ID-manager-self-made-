@@ -4,15 +4,7 @@
 #include<time.h>
 #include<Windows.h>
 #define MAXCNT 100
-<<<<<<< HEAD
-<<<<<<< HEAD
 // #define CK printf("===%d===",__LINE__);
-=======
-#define CK printf("===%d===",__LINE__);
->>>>>>> 17b5820ff03f4ce5f9ac156048a90b5b9bac58c8
-=======
-#define CK printf("===%d===",__LINE__);
->>>>>>> 17b5820ff03f4ce5f9ac156048a90b5b9bac58c8
 typedef struct Manager{
   char Name[30];
   char AccountID[100];
